@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X431 Parser</title>
+    <!-- Flatpickr for custom date format -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <style>
         :root {
             --primary: #ef4444;
@@ -190,13 +193,15 @@
 
         .picker-container {
             display: flex;
-            gap: 10px;
-            margin-bottom: 0.5rem;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
             animation: fadeIn 0.8s ease-out;
         }
 
         input[type="datetime-local"] {
-            flex: 1;
+            width: 220px;
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -205,11 +210,21 @@
             font-size: 0.9rem;
             outline: none;
             transition: all 0.3s ease;
+            text-align: center;
         }
 
         input[type="datetime-local"]:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        .picker-label {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            white-space: nowrap;
         }
 
         #clearEndTime {
@@ -252,7 +267,8 @@
         </header>
 
         <div class="picker-container">
-            <input type="datetime-local" id="endTime" title="Set Resulting End Time">
+            <label class="picker-label" for="endTime">End Time:</label>
+            <input type="datetime-local" id="endTime" title="Set Resulting End Time" autocomplete="off">
             <button id="clearEndTime">Clear</button>
         </div>
 
@@ -272,6 +288,7 @@
     <!-- Wails JS -->
     <script src="./wailsjs/go/main/App.js"></script>
     <script src="./wailsjs/runtime/runtime.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script>
         const dropZone = document.getElementById('dropZone');
@@ -279,8 +296,18 @@
         const endTimePicker = document.getElementById('endTime');
         const clearBtn = document.getElementById('clearEndTime');
 
+        // Initialize Flatpickr
+        const fp = flatpickr(endTimePicker, {
+            enableTime: true,
+            enableSeconds: true,
+            time_24hr: true,
+            dateFormat: "Y/m/d H:i:S",
+            allowInput: true,
+            monthSelectorType: 'static'
+        });
+
         clearBtn.addEventListener('click', () => {
-            endTimePicker.value = '';
+            fp.clear();
         });
 
         // Prevent default drag behaviors for the whole window

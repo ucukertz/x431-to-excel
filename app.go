@@ -166,10 +166,9 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (output string, 
 	samplingInterval := 1.0
 	useCustomSampling := false
 	if endTimeStr != "" && !sessionDate.IsZero() {
-		endTime, err := time.Parse("2006-01-02T15:04", endTimeStr)
+		endTime, err := time.Parse("2006/01/02 15:04:05", endTimeStr)
 		if err != nil {
-			// Fallback for some browsers that might include seconds
-			endTime, err = time.Parse("2006-01-02T15:04:05", endTimeStr)
+			endTime, err = time.Parse("2006/01/02 15:04", endTimeStr)
 		}
 
 		if err == nil {
@@ -200,7 +199,7 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (output string, 
 		if !sessionDate.IsZero() {
 			var ts time.Time
 			if useCustomSampling {
-				ts = sessionDate.Add(time.Duration(float64(i)*samplingInterval*float64(time.Second)))
+				ts = sessionDate.Add(time.Duration(float64(i) * samplingInterval * float64(time.Second)))
 			} else {
 				ts = sessionDate.Add(time.Duration(i) * time.Second)
 			}
