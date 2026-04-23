@@ -4,22 +4,24 @@ A modern desktop application built with [Wails](https://wails.io/) for convertin
 
 ## Key Features
 
-- **Batch Processing**: Drag and drop multiple `.x431` files simultaneously for rapid conversion.
-- **Smart Timestamps**: Automatically detects the session start time from the filename (e.g., `..._20250709161906_...`) and generates second-by-second timestamps for every data point.
-- **Locale-Aware Data**: Numeric values are written as native Excel numbers, ensuring correct interpretation regardless of whether your system uses periods or commas as decimal separators.
-- **Automatic Organization**: Resulting Excel files are saved in the same directory as the source files, with each sheet named after the capture time.
-- **Modern UI**: A clean, responsive, and high-performance interface with a premium red-themed design.
+- **Batch Processing**: Drag and drop multiple `.x431` files simultaneously.
+- **Smart Start-Time Detection**: Automatically detects the session start time from the filename (e.g., `..._20250709161906_...`). Fallbacks to 1-second increments if no custom end time is set.
+- **Dynamic Sampling**: Optional "End Time" picker allows you to set the recording's end time. The app automatically calculates the sampling rate as `(End Time - Start Time) / Total Samples`. (Note: Custom end time applies specifically to the first file in a batch).
+- **Locale-Aware Data**: Numeric values are written as native Excel numbers, ensuring correct interpretation regardless of system decimal separators.
+- **Robust Parsing**: Hardened backend with panic recovery and input validation to handle malformed or corrupted files gracefully.
+- **Detailed Error Reporting**: Specific error messages are displayed directly in the UI if conversion fails.
 
 ## Usage
 
 1. **Launch**: Open the application.
-2. **Drop**: Drag your `.x431` files from your file explorer directly into the red drop zone.
-3. **Wait**: The app will process each file sequentially.
-4. **Done**: Your `.xlsx` files will appear in the source folder ready for analysis.
+2. **Set End Time (Optional)**: If your recording has a specific end time, use the "End Time" picker to set it.
+3. **Drop**: Drag your `.x431` files directly into the red drop zone.
+4. **Processing**: The app will process each file. If you set an end time, it will be applied to the first file and then cleared automatically.
+5. **Done**: Your `.xlsx` files will appear in the source folder.
 
 ## Development
 
-This project uses Go for the backend logic and Vanilla HTML/JS/CSS for the frontend, bundled via Wails.
+This project uses Go for the backend logic and Vanilla HTML/JS/CSS for the frontend.
 
 ### Prerequisites
 
