@@ -18,8 +18,8 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "X431 to Excel",
-		Width:  512,
-		Height: 512,
+		Width:  640,
+		Height: 640,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

@@ -339,7 +339,7 @@
                     succeeded.push(name);
                 } catch (err) {
                     console.error("Conversion failed for", p, err);
-                    failed.push(name);
+                    failed.push({ name, err });
                 }
             }
 
@@ -347,17 +347,22 @@
             let parts = [];
             if (succeeded.length > 0) parts.push(`${succeeded.length} converted`);
             if (failed.length > 0) parts.push(`${failed.length} failed`);
-            if (skipped > 0) parts.push(`${skipped} skipped (not .x431)`);
+            if (skipped > 0) parts.push(`${skipped} skipped`);
 
             const statusType = failed.length > 0 ? 'error' : 'success';
             if (x431Files.length === 1) {
-                // Single file: show simple message
+                // Single file: show specific error if failed
                 const msg = failed.length > 0
-                    ? `Error converting ${succeeded.length ? '' : x431Files[0].split(/[\\/]/).pop()}`
-                    : `Convert ${succeeded[0]} success`;
+                    ? `Error: ${failed[0].err}`
+                    : `Successfully converted ${succeeded[0]}`;
                 showStatus(msg, statusType);
             } else {
-                showStatus(parts.join(', '), statusType);
+                // Multi-file: show summary and the first error if any
+                let msg = parts.join(', ');
+                if (failed.length > 0) {
+                    msg += `<br/><span style="font-size: 0.8em; opacity: 0.8">First error: ${failed[0].err}</span>`;
+                }
+                showStatus(msg, statusType);
             }
         }, true);
 

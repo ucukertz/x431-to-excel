@@ -151,7 +151,7 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (string, error) 
 
 		if err == nil {
 			if !endTime.After(sessionDate) {
-				return "", fmt.Errorf("end time must be after start time (%s)", sessionDate.Format("15:04:05"))
+				return "", fmt.Errorf("end time must be after start time")
 			}
 			duration := endTime.Sub(sessionDate)
 			samplingInterval = duration.Seconds() / float64(totalRows)
