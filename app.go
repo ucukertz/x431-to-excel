@@ -27,7 +27,15 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (string, error) {
+func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (output string, err error) {
+	// Recover from any panics to prevent the app from getting stuck
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("process panic: %v", r)
+			fmt.Printf("Recovered from panic in ConvertX431ToXlsx: %v\n", r)
+		}
+	}()
+
 	if !strings.HasSuffix(strings.ToLower(path), ".x431") {
 		return "", fmt.Errorf("invalid file type, expected .x431")
 	}
@@ -44,6 +52,10 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (string, error) 
 	f.Seek(0x134, io.SeekStart)
 	f.Read(buffer[:1])
 	columnCount := int(buffer[0]) / 4
+
+	if columnCount <= 0 {
+		return "", fmt.Errorf("invalid file structure: columnCount is 0")
+	}
 
 	// Skip to first length field
 	f.Seek(0x0c, io.SeekStart)
@@ -72,7 +84,7 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (string, error) 
 		}
 		var16 := int(binary.LittleEndian.Uint16(buffer[:2]))
 
-		if var16 <= 2 {
+		if var16 <= 2 || var16 > 0xFFFF {
 			break
 		}
 
@@ -91,31 +103,42 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (string, error) 
 
 	f.Seek(0x138, io.SeekStart)
 	for i := 0; i < columnCount; i++ {
-		f.Read(buffer[:4])
+		if n, _ := f.Read(buffer[:4]); n < 2 {
+			break
+		}
 		index := int(binary.LittleEndian.Uint16(buffer[:2]))
-		if index != 0 && index-0x09 < len(pointValues) {
+		if index >= 0x09 && index-0x09 < len(pointValues) {
 			columnNames[i+1] = fmt.Sprintf("%d. %s", i+1, pointValues[index-0x09])
 		}
 	}
 
 	for i := 0; i < columnCount; i++ {
-		f.Read(buffer[:4])
+		if n, _ := f.Read(buffer[:4]); n < 2 {
+			break
+		}
 		index := int(binary.LittleEndian.Uint16(buffer[:2]))
-		if index != 0 && index-0x09 < len(pointValues) {
+		if index >= 0x09 && index-0x09 < len(pointValues) {
 			columnNames[i+1] = fmt.Sprintf("%s (%s)", columnNames[i+1], pointValues[index-0x09])
 		}
 	}
 
-	// Prepare to read data
 	f.Seek(0x11c, io.SeekStart)
-	f.Read(buffer[:2])
+	if n, _ := f.Read(buffer[:2]); n < 2 {
+		return "", fmt.Errorf("failed to read data metadata")
+	}
 	var16 := int(binary.LittleEndian.Uint16(buffer[:2]))
 
 	f.Seek(int64(var16+8), io.SeekStart)
-	f.Read(buffer[:8])
+	if n, _ := f.Read(buffer[:8]); n < 4 {
+		return "", fmt.Errorf("failed to read records count")
+	}
 	recordsCount := int(binary.LittleEndian.Uint32(buffer[:4]))
 
 	totalRows := (recordsCount / 4) / columnCount
+
+	if totalRows <= 0 {
+		return "", fmt.Errorf("invalid file structure: no data records found")
+	}
 
 	// Create Excel file
 	sessionDate := parseSessionDate(path)
