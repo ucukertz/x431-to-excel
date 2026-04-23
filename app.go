@@ -27,7 +27,7 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func (a *App) ConvertX431ToXlsx(path string) (string, error) {
+func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (string, error) {
 	if !strings.HasSuffix(strings.ToLower(path), ".x431") {
 		return "", fmt.Errorf("invalid file type, expected .x431")
 	}
@@ -139,6 +139,26 @@ func (a *App) ConvertX431ToXlsx(path string) (string, error) {
 		ef.SetCellValue(sheetName, cell, name)
 	}
 
+	// Calculate custom sampling interval if endTimeStr is provided
+	samplingInterval := 1.0
+	useCustomSampling := false
+	if endTimeStr != "" && !sessionDate.IsZero() {
+		endTime, err := time.Parse("2006-01-02T15:04", endTimeStr)
+		if err != nil {
+			// Fallback for some browsers that might include seconds
+			endTime, err = time.Parse("2006-01-02T15:04:05", endTimeStr)
+		}
+
+		if err == nil {
+			if !endTime.After(sessionDate) {
+				return "", fmt.Errorf("end time must be after start time (%s)", sessionDate.Format("15:04:05"))
+			}
+			duration := endTime.Sub(sessionDate)
+			samplingInterval = duration.Seconds() / float64(totalRows)
+			useCustomSampling = true
+		}
+	}
+
 	// Pre-create a datetime style for the Time column (when session date is known)
 	timeStyleID := 0
 	if !sessionDate.IsZero() {
@@ -155,7 +175,12 @@ func (a *App) ConvertX431ToXlsx(path string) (string, error) {
 		rowIdx := headerRow + 1 + i
 		timeCell, _ := excelize.CoordinatesToCellName(1, rowIdx)
 		if !sessionDate.IsZero() {
-			ts := sessionDate.Add(time.Duration(i) * time.Second)
+			var ts time.Time
+			if useCustomSampling {
+				ts = sessionDate.Add(time.Duration(float64(i)*samplingInterval*float64(time.Second)))
+			} else {
+				ts = sessionDate.Add(time.Duration(i) * time.Second)
+			}
 			ef.SetCellValue(sheetName, timeCell, ts)
 			if timeStyleID != 0 {
 				ef.SetCellStyle(sheetName, timeCell, timeCell, timeStyleID)
