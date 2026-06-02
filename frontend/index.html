@@ -193,11 +193,17 @@
 
         .picker-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             gap: 12px;
             margin-bottom: 1rem;
             animation: fadeIn 0.8s ease-out;
+            align-items: stretch;
+        }
+
+        .mode-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         input[type="datetime-local"] {
@@ -266,11 +272,20 @@
             <h1>X431 to Excel</h1>
         </header>
 
-        <div class="picker-container">
-            <label class="picker-label" for="endTime">End Time:</label>
-            <input type="datetime-local" id="endTime" title="Set Resulting End Time" autocomplete="off">
-            <button id="clearEndTime">Clear</button>
-        </div>
+<div class="picker-container">
+  <div class="mode-option">
+    <input type="radio" id="modeIncrement" name="mode" value="increment" checked>
+    <label for="modeIncrement">Increment</label>
+    <input type="number" id="incrementValue" min="1" value="1000">
+    <label for="incrementValue">ms</label>
+  </div>
+  <div class="mode-option">
+    <input type="radio" id="modeEndtime" name="mode" value="endtime">
+    <label for="modeEndtime">End Time</label>
+    <input type="datetime-local" id="endTimePicker" title="Set Resulting End Time" autocomplete="off">
+    <button id="clearEndTime">Clear</button>
+  </div>
+</div>
 
         <div class="drop-zone" id="dropZone">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -293,7 +308,10 @@
     <script>
         const dropZone = document.getElementById('dropZone');
         const statusMsg = document.getElementById('statusMsg');
-        const endTimePicker = document.getElementById('endTime');
+        const incrementRadio = document.getElementById('modeIncrement');
+        const endtimeRadio = document.getElementById('modeEndtime');
+        const incrementValueInput = document.getElementById('incrementValue');
+        const endTimePicker = document.getElementById('endTimePicker');
         const clearBtn = document.getElementById('clearEndTime');
 
         // Initialize Flatpickr
@@ -349,19 +367,35 @@
                 return;
             }
 
-            let succeeded = [];
-            let failed = [];
-            const selectedEndTime = endTimePicker.value;
-            // Clear picker immediately to avoid accidental reuse in separate drop
-            endTimePicker.value = '';
+             let succeeded = [];
+             let failed = [];
+             let modeValue = "";
+             if (incrementRadio.checked) {
+                 const ms = incrementValueInput.value.trim();
+                 if (ms === "" || isNaN(ms) || parseInt(ms, 10) <= 0) {
+                     modeValue = "increment:1000";
+                 } else {
+                     modeValue = "increment:" + ms;
+                 }
+             } else if (endtimeRadio.checked) {
+                 modeValue = endTimePicker.value;
+             }
+             // Clear picker immediately to avoid accidental reuse in separate drop
+             endTimePicker.value = '';
 
             for (let i = 0; i < x431Files.length; i++) {
                 const p = x431Files[i];
                 const name = p.split(/[\\/]/).pop();
                 showStatus(`Converting ${name} (${i + 1}/${x431Files.length})<span class='loading-dots'></span>`, 'loading');
                 try {
-                    // Only pass end time for the very first file in the batch
-                    const paramEndTime = (i === 0) ? selectedEndTime : "";
+                    let paramEndTime = "";
+                    if (incrementRadio.checked) {
+                        // For increment mode, pass the increment value to every file
+                        paramEndTime = modeValue;
+                    } else {
+                        // For end time mode, only pass to the first file
+                        paramEndTime = (i === 0) ? modeValue : "";
+                    }
                     await window.go.main.App.ConvertX431ToXlsx(p, paramEndTime);
                     succeeded.push(name);
                 } catch (err) {

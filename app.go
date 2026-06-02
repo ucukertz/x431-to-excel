@@ -162,15 +162,24 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (output string, 
 		ef.SetCellValue(sheetName, cell, name)
 	}
 
-	// Calculate custom sampling interval if endTimeStr is provided
-	samplingInterval := 1.0
-	useCustomSampling := false
-	if endTimeStr != "" && !sessionDate.IsZero() {
+	// Calculate sampling interval based on mode
+	var samplingInterval float64 = 1.0
+	var useCustomSampling bool = true
+	if endTimeStr != "" && strings.HasPrefix(endTimeStr, "increment:") {
+		// Increment mode: extract milliseconds
+		msStr := strings.TrimPrefix(endTimeStr, "increment:")
+		ms, err := strconv.Atoi(msStr)
+		if err != nil || ms <= 0 {
+			ms = 1000 // default
+		}
+		samplingInterval = float64(ms) / 1000.0
+		useCustomSampling = true
+	} else if endTimeStr != "" && !sessionDate.IsZero() {
+		// End time mode
 		endTime, err := time.Parse("2006/01/02 15:04:05", endTimeStr)
 		if err != nil {
 			endTime, err = time.Parse("2006/01/02 15:04", endTimeStr)
 		}
-
 		if err == nil {
 			if !endTime.After(sessionDate) {
 				return "", fmt.Errorf("end time must be after start time")
@@ -179,7 +188,9 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (output string, 
 			samplingInterval = duration.Seconds() / float64(totalRows)
 			useCustomSampling = true
 		}
+		// else keep defaults (1.0 second increment)
 	}
+	// else keep defaults (already set)
 
 	// Pre-create a datetime style for the Time column (when session date is known)
 	timeStyleID := 0
