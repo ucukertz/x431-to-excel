@@ -272,20 +272,20 @@
             <h1>X431 to Excel</h1>
         </header>
 
-<div class="picker-container">
-  <div class="mode-option">
-    <input type="radio" id="modeIncrement" name="mode" value="increment" checked>
-    <label for="modeIncrement">Increment</label>
-    <input type="number" id="incrementValue" min="1" value="1000">
-    <label for="incrementValue">ms</label>
-  </div>
-  <div class="mode-option">
-    <input type="radio" id="modeEndtime" name="mode" value="endtime">
-    <label for="modeEndtime">End Time</label>
-    <input type="datetime-local" id="endTimePicker" title="Set Resulting End Time" autocomplete="off">
-    <button id="clearEndTime">Clear</button>
-  </div>
-</div>
+        <div class="picker-container">
+            <div class="mode-option">
+                <input type="radio" id="modeIncrement" name="mode" value="increment" checked>
+                <label for="modeIncrement">Increment</label>
+                <input type="number" id="incrementValue" min="1" value="1000">
+                <label for="incrementValue">ms</label>
+            </div>
+            <div class="mode-option">
+                <input type="radio" id="modeEndtime" name="mode" value="endtime">
+                <label for="modeEndtime">End Time</label>
+                <input type="datetime-local" id="endTimePicker" title="Set Resulting End Time" autocomplete="off">
+                <button id="clearEndTime">Clear</button>
+            </div>
+        </div>
 
         <div class="drop-zone" id="dropZone">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -293,7 +293,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
             </svg>
-            <p>Drop .x431 file here</p>
+            <p>Drop .x431 or .dzx file here</p>
             <span>Excel file is saved to the same folder as input</span>
         </div>
 
@@ -359,34 +359,37 @@
             console.log("File(s) dropped at:", x, y, "Paths:", paths);
             if (!paths || paths.length === 0) return;
 
-            const x431Files = paths.filter(p => p.toLowerCase().endsWith('.x431'));
-            const skipped = paths.length - x431Files.length;
+            const validFiles = paths.filter(p => {
+                const lower = p.toLowerCase();
+                return lower.endsWith('.x431') || lower.endsWith('.dzx');
+            });
+            const skipped = paths.length - validFiles.length;
 
-            if (x431Files.length === 0) {
-                showStatus("Error: Only .x431 files are supported.", 'error');
+            if (validFiles.length === 0) {
+                showStatus("Error: Only .x431 or .dzx files are supported.", 'error');
                 return;
             }
 
-             let succeeded = [];
-             let failed = [];
-             let modeValue = "";
-             if (incrementRadio.checked) {
-                 const ms = incrementValueInput.value.trim();
-                 if (ms === "" || isNaN(ms) || parseInt(ms, 10) <= 0) {
-                     modeValue = "increment:1000";
-                 } else {
-                     modeValue = "increment:" + ms;
-                 }
-             } else if (endtimeRadio.checked) {
-                 modeValue = endTimePicker.value;
-             }
-             // Clear picker immediately to avoid accidental reuse in separate drop
-             endTimePicker.value = '';
+            let succeeded = [];
+            let failed = [];
+            let modeValue = "";
+            if (incrementRadio.checked) {
+                const ms = incrementValueInput.value.trim();
+                if (ms === "" || isNaN(ms) || parseInt(ms, 10) <= 0) {
+                    modeValue = "increment:1000";
+                } else {
+                    modeValue = "increment:" + ms;
+                }
+            } else if (endtimeRadio.checked) {
+                modeValue = endTimePicker.value;
+            }
+            // Clear picker immediately to avoid accidental reuse in separate drop
+            endTimePicker.value = '';
 
-            for (let i = 0; i < x431Files.length; i++) {
-                const p = x431Files[i];
+            for (let i = 0; i < validFiles.length; i++) {
+                const p = validFiles[i];
                 const name = p.split(/[\\/]/).pop();
-                showStatus(`Converting ${name} (${i + 1}/${x431Files.length})<span class='loading-dots'></span>`, 'loading');
+                showStatus(`Converting ${name} (${i + 1}/${validFiles.length})<span class='loading-dots'></span>`, 'loading');
                 try {
                     let paramEndTime = "";
                     if (incrementRadio.checked) {
@@ -411,7 +414,7 @@
             if (skipped > 0) parts.push(`${skipped} skipped`);
 
             const statusType = failed.length > 0 ? 'error' : 'success';
-            if (x431Files.length === 1) {
+            if (validFiles.length === 1) {
                 // Single file: show specific error if failed
                 const msg = failed.length > 0
                     ? `Error: ${failed[0].err}`

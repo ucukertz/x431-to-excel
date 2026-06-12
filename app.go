@@ -36,8 +36,9 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (output string, 
 		}
 	}()
 
-	if !strings.HasSuffix(strings.ToLower(path), ".x431") {
-		return "", fmt.Errorf("invalid file type, expected .x431")
+	if !strings.HasSuffix(strings.ToLower(path), ".x431") &&
+		!strings.HasSuffix(strings.ToLower(path), ".dzx") {
+		return "", fmt.Errorf("invalid file type, expected .x431 or .dzx")
 	}
 
 	f, err := os.Open(path)
