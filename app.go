@@ -177,9 +177,9 @@ func (a *App) ConvertX431ToXlsx(path string, endTimeStr string) (output string, 
 		useCustomSampling = true
 	} else if endTimeStr != "" && !sessionDate.IsZero() {
 		// End time mode
-		endTime, err := time.Parse("2006/01/02 15:04:05", endTimeStr)
+		endTime, err := time.ParseInLocation("2006/01/02 15:04:05", endTimeStr, time.Local)
 		if err != nil {
-			endTime, err = time.Parse("2006/01/02 15:04", endTimeStr)
+			endTime, err = time.ParseInLocation("2006/01/02 15:04", endTimeStr, time.Local)
 		}
 		if err == nil {
 			if !endTime.After(sessionDate) {

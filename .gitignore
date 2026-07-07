@@ -28,6 +28,9 @@ build/
 # Frontend build artifacts
 dist/
 
+# Docs (internal planning notes, not for repo)
+docs/
+
 # OS specific files
 .DS_Store
 Thumbs.db
