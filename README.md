@@ -1,10 +1,10 @@
 # X431 to Excel
 
-A modern desktop application built with [Wails](https://wails.io/) for converting diagnostic `.x431` files into professional Excel (`.xlsx`) spreadsheets.
+A modern desktop application built with [Wails](https://wails.io/) for converting diagnostic `.x431` and `.dzx` files into professional Excel (`.xlsx`) spreadsheets.
 
 ## Key Features
 
-- **Batch Processing**: Drag and drop multiple `.x431` files simultaneously.
+- **Batch Processing**: Drag and drop multiple `.x431` or `.dzx` files simultaneously.
 - **Smart Start-Time Detection**: Automatically detects the session start time from the filename (e.g., `..._20250709161906_...`). Fallbacks to 1-second increments if no custom end time is set.
 - **Dynamic Sampling**: Optional "End Time" picker allows you to set the recording's end time. The app automatically calculates the sampling rate as `(End Time - Start Time) / Total Samples`. (Note: Custom end time applies specifically to the first file in a batch).
 - **Locale-Aware Data**: Numeric values are written as native Excel numbers, ensuring correct interpretation regardless of system decimal separators.
@@ -15,7 +15,7 @@ A modern desktop application built with [Wails](https://wails.io/) for convertin
 
 1. **Launch**: Open the application.
 2. **Set End Time (Optional)**: If your recording has a specific end time, use the "End Time" picker to set it.
-3. **Drop**: Drag your `.x431` files directly into the red drop zone.
+3. **Drop**: Drag your `.x431` or `.dzx` files directly into the red drop zone.
 4. **Processing**: The app will process each file. If you set an end time, it will be applied to the first file and then cleared automatically.
 5. **Done**: Your `.xlsx` files will appear in the source folder.
 

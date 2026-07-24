@@ -22,7 +22,8 @@ node_modules/
 
 # Wails Build Output
 build/bin/
-build/
+build/*
+!build/appicon.png
 .wails/
 
 # Frontend build artifacts
