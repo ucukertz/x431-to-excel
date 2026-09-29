@@ -2,6 +2,8 @@
 
 A modern desktop application built with [Wails](https://wails.io/) for converting diagnostic `.x431` and `.dzx` files into professional Excel (`.xlsx`) spreadsheets.
 
+> Prefer the command line? See [x431-to-csv](https://github.com/ucukertz/x431-to-csv), a CLI that does the same conversion but outputs `.csv` instead of `.xlsx`.
+
 ## Key Features
 
 - **Batch Processing**: Drag and drop multiple `.x431` or `.dzx` files simultaneously.
